@@ -1,0 +1,124 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: homi-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: homi
+      POSTGRES_USER: homi
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    volumes:
+      - /srv/docker-data/homi/postgres:/var/lib/postgresql/data
+
+    networks:
+      - homi_internal
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U homi -d homi"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
+
+  homi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    image: homi:local
+    container_name: homi
+    restart: unless-stopped
+
+    environment:
+      # Public URL
+      NEXT_PUBLIC_APP_URL: ${HOMI_URL}
+      BETTER_AUTH_URL: ${HOMI_URL}
+
+      # Application
+      NEXT_PUBLIC_PRODUCT_NAME: Homi
+      NEXT_PUBLIC_SUPPORT_EMAIL: ${SUPPORT_EMAIL}
+
+      # Database
+      DATABASE_URL: postgresql://homi:${POSTGRES_PASSWORD}@postgres:5432/homi
+      DATABASE_SSL: "false"
+
+      # Authentication
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+
+      # File storage
+      STORAGE_PROVIDER: local
+      LOCAL_STORAGE_PATH: /app/data/uploads
+      MAX_UPLOAD_BYTES: "10485760"
+
+      # Optional services we're NOT using
+      REDIS_URL: ""
+      CLAMAV_ENABLED: "false"
+
+      # Email disabled for now
+      SMTP_HOST: ""
+      SMTP_PORT: "1025"
+      SMTP_USER: ""
+      SMTP_PASSWORD: ""
+      SMTP_FROM: ${SMTP_FROM}
+      SUPPORT_EMAIL: ${SUPPORT_EMAIL}
+
+      # OAuth disabled for now
+      GOOGLE_CLIENT_ID: ""
+      GOOGLE_CLIENT_SECRET: ""
+
+      # Internal scheduled jobs
+      CRON_SECRET: ${CRON_SECRET}
+
+      LOG_LEVEL: info
+
+    volumes:
+      - /srv/docker-data/homi/uploads:/app/data/uploads
+
+    ports:
+      - "3010:3000"
+
+    networks:
+      - homi_internal
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/health/live"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 10
+
+
+  reminders:
+    image: curlimages/curl:8.14.1
+    container_name: homi-reminders
+    restart: unless-stopped
+
+    environment:
+      CRON_SECRET: ${CRON_SECRET}
+
+    networks:
+      - homi_internal
+
+    depends_on:
+      homi:
+        condition: service_healthy
+
+    command: >
+      sh -c 'while true; do
+      curl --fail --silent --show-error
+      -X POST
+      -H "Authorization: Bearer $$CRON_SECRET"
+      http://homi:3000/api/internal/reminders || true;
+      sleep 3600;
+      done'
+
+
+networks:
+  homi_internal:
+    driver: bridge
