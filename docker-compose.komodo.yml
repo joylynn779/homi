@@ -27,8 +27,8 @@ services:
       context: .
       dockerfile: Dockerfile
   
-      container_name: homi
-      restart: unless-stopped
+    container_name: homi
+    restart: unless-stopped
 
     environment:
       # Public URL
