@@ -22,13 +22,13 @@ services:
       retries: 15
 
 
-homi:
-  build:
-    context: .
-    dockerfile: Dockerfile
-
-    container_name: homi
-    restart: unless-stopped
+  homi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+  
+      container_name: homi
+      restart: unless-stopped
 
     environment:
       # Public URL
