@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { Archive, Check, House, Pencil, Plus, X } from "lucide-react";
 import { ActionFeedback } from "@/src/components/action-feedback";
 
@@ -29,6 +30,7 @@ const optional = (value: FormDataEntryValue | null) => {
 };
 
 export function HomeWorkspace() {
+  const router = useRouter();
   const [homes, setHomes] = useState<Home[]>([]);
   const [homeId, setHomeId] = useState("");
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -45,8 +47,13 @@ export function HomeWorkspace() {
   async function loadHomes(preferredId?: string) {
     const response = await fetch("/api/homes");
     const payload = (await response.json()) as { homes?: Home[] };
+    if (!response.ok) {
+      setError("Could not load your homes.");
+      return;
+    }
     const next = payload.homes ?? [];
     setHomes(next);
+    if (!next.length) setRooms([]);
     setHomeId((current) => {
       const candidate = preferredId ?? current;
       return next.some((home) => home.id === candidate)
@@ -82,11 +89,28 @@ export function HomeWorkspace() {
       .then((payload: { rooms?: Room[] }) => setRooms(payload.rooms ?? []));
   }, [homeId]);
 
-  function selectHome(selectedId: string) {
+  async function selectHome(selectedId: string) {
+    setError("");
+    try {
+      const response = await fetch("/api/homes/selected", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ homeId: selectedId }),
+      });
+      if (!response.ok) {
+        const payload = await response.json();
+        setError(payload.error?.message ?? "Could not switch homes.");
+        return;
+      }
+    } catch {
+      setError("Could not switch homes. Please try again.");
+      return;
+    }
     setEditingHomeId("");
     setEditingRoomId("");
     setRooms([]);
     setHomeId(selectedId);
+    router.refresh();
   }
 
   async function addHome(event: FormEvent<HTMLFormElement>) {
@@ -116,6 +140,7 @@ export function HomeWorkspace() {
     }
     formElement.reset();
     setMessage("Home added to your journal.");
+    router.refresh();
     await loadHomes(payload.home.id);
   }
 
@@ -148,6 +173,7 @@ export function HomeWorkspace() {
     }
     setEditingHomeId("");
     setMessage("Home details updated.");
+    router.refresh();
     await loadHomes(selectedHome.id);
   }
 
@@ -164,6 +190,7 @@ export function HomeWorkspace() {
     }
     setEditingHomeId("");
     setMessage(`${selectedHome.name} was archived.`);
+    router.refresh();
     await loadHomes();
   }
 
@@ -252,7 +279,7 @@ export function HomeWorkspace() {
                 <button
                   className="resource-button"
                   type="button"
-                  onClick={() => selectHome(home.id)}
+                  onClick={() => void selectHome(home.id)}
                 >
                   <strong>{home.name}</strong>
                   <small>

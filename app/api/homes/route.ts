@@ -3,6 +3,7 @@ import { resolveSelectedHomeId, selectedHomeCookie } from "@/src/features/homes/
 import { requireVerifiedUser } from "@/src/server/authorization";
 import { errorResponse, requestId } from "@/src/server/http";
 import { createHome, listHomes } from "@/src/server/services/homes";
+import { setSelectedHomeId } from "@/src/server/services/home-selection";
 
 export async function GET(request: Request) {
   const id = requestId(request);
@@ -30,6 +31,7 @@ export async function POST(request: Request) {
   try {
     const session = await requireVerifiedUser();
     const home = await createHome(session.user.id, await request.json());
+    await setSelectedHomeId(home.id);
     return Response.json({ home, requestId: id }, { status: 201 });
   } catch (error) {
     return errorResponse(error, id);

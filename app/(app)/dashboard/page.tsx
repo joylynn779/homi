@@ -14,7 +14,7 @@ import {
   Wrench,
 } from "lucide-react";
 import { db } from "@/db";
-import { homeMembers, homes, notifications } from "@/db/schema";
+import { notifications } from "@/db/schema";
 import { CalmStatus } from "@/src/components/app-shell";
 import { getDictionary } from "@/src/features/i18n/dictionaries";
 import {
@@ -24,6 +24,7 @@ import {
 import { requireVerifiedPageUser } from "@/src/server/authorization/page";
 import { getConnectedHomeSummary } from "@/src/server/integrations/home-summary";
 import { getExperiencePreferences } from "@/src/server/services/experience";
+import { listHomes } from "@/src/server/services/homes";
 
 export const metadata = { title: "Dashboard" };
 
@@ -31,28 +32,19 @@ const localeTags = { en: "en-US", fr: "fr-FR", de: "de-DE" } as const;
 
 export default async function DashboardPage() {
   const session = await requireVerifiedPageUser();
-  const [memberships, experience] = await Promise.all([
-    db
-      .select({ home: homes })
-      .from(homeMembers)
-      .innerJoin(homes, eq(homes.id, homeMembers.homeId))
-      .where(
-        and(
-          eq(homeMembers.userId, session.user.id),
-          isNull(homes.archivedAt),
-        ),
-      ),
+  const [homes, experience] = await Promise.all([
+    listHomes(session.user.id),
     getExperiencePreferences(session.user.id),
   ]);
   const selectedHomeId = resolveSelectedHomeId(
-    memberships.map(({ home }) => home),
+    homes,
     (await cookies()).get(selectedHomeCookie)?.value,
   );
-  const membership = memberships.find(({ home }) => home.id === selectedHomeId);
+  const home = homes.find((home) => home.id === selectedHomeId);
   const dictionary = getDictionary(experience.locale);
   const locale = localeTags[experience.locale];
   const now = new Date();
-  const timeZone = membership?.home.timezone ?? "UTC";
+  const timeZone = home?.timezone ?? "UTC";
   const hour = Number(
     new Intl.DateTimeFormat("en-US", {
       hour: "2-digit",
@@ -71,10 +63,10 @@ export default async function DashboardPage() {
     timeZone,
   }).format(now);
 
-  const summary = membership
-    ? await getConnectedHomeSummary(membership.home.id)
+  const summary = home
+    ? await getConnectedHomeSummary(home.id)
     : null;
-  const unread = membership
+  const unread = home
     ? (
         await db
           .select({ value: count() })
@@ -83,7 +75,7 @@ export default async function DashboardPage() {
             and(
               eq(notifications.userId, session.user.id),
               or(
-                eq(notifications.homeId, membership.home.id),
+                eq(notifications.homeId, home.id),
                 isNull(notifications.homeId),
               ),
               isNull(notifications.readAt),
@@ -175,18 +167,18 @@ export default async function DashboardPage() {
           <small>{dateLabel}</small>
           <h1>{greeting}, {session.user.name.split(" ")[0]}.</h1>
           <p>
-            {membership
-              ? `${membership.home.name} ${dictionary.homeReady}`
+            {home
+              ? `${home.name} ${dictionary.homeReady}`
               : dictionary.startJournal}
           </p>
         </div>
-        <Link className="button" href={membership ? "/assets" : "/onboarding"}>
+        <Link className="button" href={home ? "/assets" : "/onboarding"}>
           <Plus size={16} />
-          {membership ? "Add something" : "Start setup"}
+          {home ? "Add something" : "Start setup"}
         </Link>
       </div>
 
-      {membership ? (
+      {home ? (
         <section className="dashboard-atmosphere" data-reveal aria-label="Home care overview">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -197,7 +189,7 @@ export default async function DashboardPage() {
             referrerPolicy="no-referrer"
           />
           <div className="dashboard-atmosphere-copy">
-            <small>Today at {membership.home.name}</small>
+            <small>Today at {home.name}</small>
             <h2>{summary?.health.title ?? "A clear place for everything your home needs."}</h2>
             <p>
               {summary?.health.summary ??

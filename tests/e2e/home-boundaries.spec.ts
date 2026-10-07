@@ -104,7 +104,7 @@ test("global home switcher persists and drives the dashboard", async ({ page }) 
 
   await page.goto("/dashboard");
   await expect(page.getByText(`${homeName} is ready for the day.`)).toBeVisible();
-  await expect(page.getByLabel("Global selected home")).toHaveValue(homeId);
+  await expect(page.getByRole("button", { name: "Global selected home" })).toContainText(homeName);
 
   const homes = (await (await page.request.get("/api/homes")).json()) as {
     homes: Array<{ id: string }>;
@@ -112,4 +112,49 @@ test("global home switcher persists and drives the dashboard", async ({ page }) 
   };
   expect(homes.selectedHomeId).toBe(homeId);
   expect(homes.homes[0]?.id).toBe(homeId);
+});
+
+test("creating a home refreshes the sidebar and switching persists across reloads", async ({ page, isMobile }) => {
+  test.skip(isMobile, "The sidebar is hidden on mobile.");
+  await page.goto("/homes");
+  const homeName = `Z Selector ${crypto.randomUUID().slice(0, 8)}`;
+  await page.getByLabel("Home name").fill(homeName);
+  await page.getByRole("button", { name: "Add home", exact: true }).click();
+  const switcher = page.getByRole("button", { name: "Global selected home" });
+  await expect(switcher).toContainText(homeName);
+
+  const payload = await (await page.request.get("/api/homes")).json();
+  const created = payload.homes.find((home: { name: string }) => home.name === homeName);
+  const other = payload.homes.find((home: { id: string }) => home.id !== created.id);
+  expect(payload.selectedHomeId).toBe(created.id);
+  expect(other).toBeDefined();
+  await switcher.click();
+  await page.getByRole("menuitemradio").filter({ hasText: other.name }).click();
+  await expect(switcher).toContainText(other.name);
+  await page.goto("/dashboard");
+  await expect(page.getByText(`${other.name} is ready for the day.`)).toBeVisible();
+  await page.reload();
+  await expect(switcher).toContainText(other.name);
+  expect((await (await page.request.get("/api/homes")).json()).selectedHomeId).toBe(other.id);
+});
+
+test("fresh loads agree on the fallback for an inaccessible saved home", async ({ page }) => {
+  await page.goto("/dashboard");
+  await page.context().addCookies([{
+    name: "homi-selected-home", value: crypto.randomUUID(), url: page.url(),
+  }]);
+  await page.reload();
+  const payload = await (await page.request.get("/api/homes")).json();
+  const selected = payload.homes.find((home: { id: string }) => home.id === payload.selectedHomeId);
+  expect(selected).toBeDefined();
+  await expect(page.getByRole("button", { name: "Global selected home" })).toContainText(selected.name);
+  await expect(page.getByText(`${selected.name} is ready for the day.`)).toBeVisible();
+  const denied = await page.request.post("/api/homes/selected", { data: { homeId: crypto.randomUUID() } });
+  expect(denied.status()).toBe(404);
+  await page.reload();
+  await expect(page.getByText(`${selected.name} is ready for the day.`)).toBeVisible();
+  await page.context().clearCookies({ name: "homi-selected-home" });
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Global selected home" })).toContainText(selected.name);
+  await expect(page.getByText(`${selected.name} is ready for the day.`)).toBeVisible();
 });

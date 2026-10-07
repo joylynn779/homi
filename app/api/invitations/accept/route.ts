@@ -6,6 +6,7 @@ import { hashInvitationToken } from "@/src/features/members/invitation-token";
 import { requireVerifiedUser } from "@/src/server/authorization";
 import { AppError } from "@/src/server/errors";
 import { errorResponse, requestId } from "@/src/server/http";
+import { setSelectedHomeId } from "@/src/server/services/home-selection";
 const input = z.object({ token: z.string().min(32).max(256) });
 export async function POST(request: Request) {
   const id = requestId(request);
@@ -19,7 +20,7 @@ export async function POST(request: Request) {
       await tx.update(homeInvitations).set({ acceptedAt: new Date() }).where(eq(homeInvitations.id, invitation.id));
       await tx.insert(notifications).values({ userId: invitation.invitedBy, homeId: invitation.homeId, type: "INVITATION_ACCEPTED", title: "Invitation accepted", message: `${session.user.name} joined the household.`, actionUrl: "/members" });
     });
+    await setSelectedHomeId(invitation.homeId);
     return Response.json({ homeId: invitation.homeId, requestId: id });
   } catch (error) { return errorResponse(error, id); }
 }
-

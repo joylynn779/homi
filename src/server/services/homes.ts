@@ -59,7 +59,7 @@ export async function listHomes(userId: string) {
     .from(homeMembers)
     .innerJoin(homes, eq(homes.id, homeMembers.homeId))
     .where(and(eq(homeMembers.userId, userId), isNull(homes.archivedAt)))
-    .orderBy(homes.name);
+    .orderBy(homes.name, homes.id);
 }
 
 export const roomInput = z.object({

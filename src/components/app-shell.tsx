@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { Brand } from "@/src/components/brand";
 import { GlobalCommandPalette } from "@/src/components/global-command-palette";
+import { HomeSwitcher } from "@/src/components/home-switcher";
 import { PwaInstallPrompt } from "@/src/components/pwa-install-prompt";
 import { UserAvatar } from "@/src/components/user-avatar";
 import type { HomeHealth } from "@/src/features/dashboard/health";
@@ -91,7 +92,6 @@ export function AppShell({
 }) {
   const pathname = usePathname();
   const dictionary = getDictionary(locale);
-  const selectedHome = homes.find((home) => home.id === selectedHomeId);
 
   async function selectHome(homeId: string) {
     const response = await fetch("/api/homes/selected", {
@@ -99,7 +99,11 @@ export function AppShell({
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ homeId }),
     });
-    if (response.ok) window.location.reload();
+    if (!response.ok) {
+      const payload = await response.json();
+      throw new Error(payload.error?.message ?? dictionary.switchHomeError);
+    }
+    window.location.reload();
   }
 
   const label = (key: NavigationKey) => dictionary[key];
@@ -110,31 +114,12 @@ export function AppShell({
         <Link href="/dashboard">
           <Brand connected />
         </Link>
-        <label className="home-switcher">
-          <span>
-            <House size={17} />
-          </span>
-          <span>
-            <strong>{selectedHome?.name ?? dictionary.noHome}</strong>
-            <small>
-              {selectedHome?.city ||
-                selectedHome?.type ||
-                dictionary.personalJournal}
-            </small>
-          </span>
-          <select
-            aria-label="Global selected home"
-            value={selectedHomeId}
-            disabled={!homes.length}
-            onChange={(event) => void selectHome(event.target.value)}
-          >
-            {homes.map((home) => (
-              <option key={home.id} value={home.id}>
-                {home.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        <HomeSwitcher
+          homes={homes}
+          selectedHomeId={selectedHomeId}
+          locale={locale}
+          onSelect={selectHome}
+        />
         <nav className="app-nav" aria-label="Workspace">
           {navigation.map(([href, key, Icon]) => (
             <NavLink key={href} href={href} label={label(key)} icon={Icon} />
