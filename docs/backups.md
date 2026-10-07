@@ -36,4 +36,3 @@ Never make the backup bucket public. Encrypt off-site copies with a separately m
 ## Policy
 
 Recommended baseline: daily database and object backups, 30 daily copies, 12 monthly copies, one off-site copy, and a quarterly restore drill. Match actual retention to the privacy policy and legal obligations.
-

@@ -1,128 +1,128 @@
 name: CI
 on:
-  workflow_dispatch:
-  pull_request:
-  push:
-    branches: [main]
+    workflow_dispatch:
+    pull_request:
+    push:
+        branches: [main]
 
 permissions:
-  contents: read
+    contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+    group: ci-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
 
 jobs:
-  quality:
-    runs-on: ubuntu-latest
-    env:
-      NODE_ENV: test
-      NEXT_PUBLIC_APP_URL: http://localhost:3000
-      BETTER_AUTH_SECRET: ci-only-secret-with-at-least-thirty-two-characters
-      CRON_SECRET: ci-only-cron-secret-long-enough
-      STORAGE_PROVIDER: local
-      LOCAL_STORAGE_PATH: ./data/test-uploads
-    steps:
-      - uses: actions/checkout@v7
-      - uses: oven-sh/setup-bun@v2
-        with: { bun-version: 1.3.14 }
-      - run: bun install --frozen-lockfile
-      - run: bun run typecheck
-      - run: bun run lint
-      - run: bun run test
-      - name: Validate connected integration sources
-        run: |
-          python3 -m compileall -q custom_components integrations/mqtt-bridge
-          python3 - <<'PY'
-          import json
-          from pathlib import Path
-
-          roots = [Path("custom_components/homi"), Path("native")]
-          files = [path for root in roots for path in root.rglob("*.json")]
-          files += [Path("hacs.json"), Path("native/package.json")]
-          for path in sorted(set(files)):
-              json.loads(path.read_text(encoding="utf-8"))
-              print(f"validated {path}")
-          PY
-
-  application:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    services:
-      postgres:
-        image: postgres:17-alpine
+    quality:
+        runs-on: ubuntu-latest
         env:
-          POSTGRES_DB: homi_test
-          POSTGRES_USER: homi
-          POSTGRES_PASSWORD: homi-test
-        ports: ["5432:5432"]
-        options: >-
-          --health-cmd "pg_isready -U homi -d homi_test"
-          --health-interval 5s --health-timeout 5s --health-retries 10
-      clamav:
-        image: clamav/clamav:1.5
-        ports: ["3310:3310"]
-        options: >-
-          --health-cmd "clamdscan --ping 1"
-          --health-interval 10s --health-timeout 5s
-          --health-start-period 120s --health-retries 30
-    env:
-      NODE_ENV: test
-      NEXT_PUBLIC_APP_URL: http://localhost:3000
-      DATABASE_URL: postgresql://homi:homi-test@127.0.0.1:5432/homi_test
-      TEST_DATABASE_URL: postgresql://homi:homi-test@127.0.0.1:5432/homi_test
-      BETTER_AUTH_SECRET: ci-only-secret-with-at-least-thirty-two-characters
-      CRON_SECRET: ci-only-cron-secret-long-enough
-      STORAGE_PROVIDER: local
-      LOCAL_STORAGE_PATH: ./data/test-uploads
-      CLAMAV_ENABLED: "true"
-      CLAMAV_HOST: 127.0.0.1
-      CLAMAV_PORT: "3310"
-      CLAMAV_TIMEOUT_MS: "10000"
-    steps:
-      - uses: actions/checkout@v7
-      - uses: oven-sh/setup-bun@v2
-        with: { bun-version: 1.3.14 }
-      - run: bun install --frozen-lockfile
-      - run: bun run db:migrate
-      - run: bun run test:integration
-      - run: bun run build
-      - run: bunx playwright install --with-deps chromium
-      - run: bun run db:seed
-      - name: Run Playwright
-        run: |
-          set -o pipefail
-          bun run test:e2e --project=desktop 2>&1 | tee playwright-output.log
-      - name: Upload Playwright diagnostics
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-diagnostics
-          path: |
-            playwright-output.log
-            test-results
-            playwright-report
-          if-no-files-found: warn
-          retention-days: 7
+            NODE_ENV: test
+            NEXT_PUBLIC_APP_URL: http://localhost:3000
+            BETTER_AUTH_SECRET: ci-only-secret-with-at-least-thirty-two-characters
+            CRON_SECRET: ci-only-cron-secret-long-enough
+            STORAGE_PROVIDER: local
+            LOCAL_STORAGE_PATH: ./data/test-uploads
+        steps:
+            - uses: actions/checkout@v7
+            - uses: oven-sh/setup-bun@v2
+              with: { bun-version: 1.3.14 }
+            - run: bun install --frozen-lockfile
+            - run: bun run typecheck
+            - run: bun run lint
+            - run: bun run test
+            - name: Validate connected integration sources
+              run: |
+                  python3 -m compileall -q custom_components integrations/mqtt-bridge
+                  python3 - <<'PY'
+                  import json
+                  from pathlib import Path
 
-  container:
-    needs: [quality, application]
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v7
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: false
-          tags: homi:ci
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-      - uses: docker/build-push-action@v6
-        with:
-          context: integrations/mqtt-bridge
-          push: false
-          tags: homi-mqtt-bridge:ci
-          cache-from: type=gha,scope=mqtt-bridge
-          cache-to: type=gha,mode=max,scope=mqtt-bridge
+                  roots = [Path("custom_components/homi"), Path("native")]
+                  files = [path for root in roots for path in root.rglob("*.json")]
+                  files += [Path("hacs.json"), Path("native/package.json")]
+                  for path in sorted(set(files)):
+                      json.loads(path.read_text(encoding="utf-8"))
+                      print(f"validated {path}")
+                  PY
+
+    application:
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        services:
+            postgres:
+                image: postgres:17-alpine
+                env:
+                    POSTGRES_DB: homi_test
+                    POSTGRES_USER: homi
+                    POSTGRES_PASSWORD: homi-test
+                ports: ["5432:5432"]
+                options: >-
+                    --health-cmd "pg_isready -U homi -d homi_test"
+                    --health-interval 5s --health-timeout 5s --health-retries 10
+            clamav:
+                image: clamav/clamav:1.5
+                ports: ["3310:3310"]
+                options: >-
+                    --health-cmd "clamdscan --ping 1"
+                    --health-interval 10s --health-timeout 5s
+                    --health-start-period 120s --health-retries 30
+        env:
+            NODE_ENV: test
+            NEXT_PUBLIC_APP_URL: http://localhost:3000
+            DATABASE_URL: postgresql://homi:homi-test@127.0.0.1:5432/homi_test
+            TEST_DATABASE_URL: postgresql://homi:homi-test@127.0.0.1:5432/homi_test
+            BETTER_AUTH_SECRET: ci-only-secret-with-at-least-thirty-two-characters
+            CRON_SECRET: ci-only-cron-secret-long-enough
+            STORAGE_PROVIDER: local
+            LOCAL_STORAGE_PATH: ./data/test-uploads
+            CLAMAV_ENABLED: "true"
+            CLAMAV_HOST: 127.0.0.1
+            CLAMAV_PORT: "3310"
+            CLAMAV_TIMEOUT_MS: "10000"
+        steps:
+            - uses: actions/checkout@v7
+            - uses: oven-sh/setup-bun@v2
+              with: { bun-version: 1.3.14 }
+            - run: bun install --frozen-lockfile
+            - run: bun run db:migrate
+            - run: bun run test:integration
+            - run: bun run build
+            - run: bunx playwright install --with-deps chromium
+            - run: bun run db:seed
+            - name: Run Playwright
+              run: |
+                  set -o pipefail
+                  bun run test:e2e --project=desktop 2>&1 | tee playwright-output.log
+            - name: Upload Playwright diagnostics
+              if: failure()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: playwright-diagnostics
+                  path: |
+                      playwright-output.log
+                      test-results
+                      playwright-report
+                  if-no-files-found: warn
+                  retention-days: 7
+
+    container:
+        needs: [quality, application]
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        steps:
+            - uses: actions/checkout@v7
+            - uses: docker/setup-buildx-action@v3
+            - uses: docker/build-push-action@v6
+              with:
+                  context: .
+                  push: false
+                  tags: homi:ci
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
+            - uses: docker/build-push-action@v6
+              with:
+                  context: integrations/mqtt-bridge
+                  push: false
+                  tags: homi-mqtt-bridge:ci
+                  cache-from: type=gha,scope=mqtt-bridge
+                  cache-to: type=gha,mode=max,scope=mqtt-bridge

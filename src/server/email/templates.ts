@@ -1,11 +1,26 @@
 const escapeHtml = (value: string) =>
-  value.replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[char]!);
+    value.replace(
+        /[&<>"']/g,
+        (char) =>
+            ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;",
+            })[char]!,
+    );
 
 export type EmailTemplate = { subject: string; text: string; html: string };
 
-function layout(eyebrow: string, title: string, body: string, action?: { label: string; url: string }) {
-  const safeUrl = action ? escapeHtml(action.url) : "";
-  return `<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width"></head>
+function layout(
+    eyebrow: string,
+    title: string,
+    body: string,
+    action?: { label: string; url: string },
+) {
+    const safeUrl = action ? escapeHtml(action.url) : "";
+    return `<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width"></head>
   <body style="margin:0;background:#f5f6f2;color:#16221c;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
   <div style="display:none;max-height:0;overflow:hidden">${escapeHtml(title)}</div>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td style="padding:32px 16px">
@@ -20,34 +35,64 @@ function layout(eyebrow: string, title: string, body: string, action?: { label: 
 }
 
 export function verificationEmail(name: string, url: string): EmailTemplate {
-  return {
-    subject: "Verify your Homi email",
-    text: `Hi ${name}, verify your email to finish setting up Homi: ${url}`,
-    html: layout("One last step", "Verify your email", `<p>Hi ${escapeHtml(name)}, confirm this email address to keep your home journal secure.</p>`, { label: "Verify email", url }),
-  };
+    return {
+        subject: "Verify your Homi email",
+        text: `Hi ${name}, verify your email to finish setting up Homi: ${url}`,
+        html: layout(
+            "One last step",
+            "Verify your email",
+            `<p>Hi ${escapeHtml(name)}, confirm this email address to keep your home journal secure.</p>`,
+            { label: "Verify email", url },
+        ),
+    };
 }
 
 export function passwordResetEmail(name: string, url: string): EmailTemplate {
-  return {
-    subject: "Reset your Homi password",
-    text: `Hi ${name}, reset your Homi password: ${url}\nThis link expires soon. Ignore this message if you did not request it.`,
-    html: layout("Account security", "Reset your password", `<p>Hi ${escapeHtml(name)}, use the secure link below to choose a new password. If you did not request this, no action is needed.</p>`, { label: "Reset password", url }),
-  };
+    return {
+        subject: "Reset your Homi password",
+        text: `Hi ${name}, reset your Homi password: ${url}\nThis link expires soon. Ignore this message if you did not request it.`,
+        html: layout(
+            "Account security",
+            "Reset your password",
+            `<p>Hi ${escapeHtml(name)}, use the secure link below to choose a new password. If you did not request this, no action is needed.</p>`,
+            { label: "Reset password", url },
+        ),
+    };
 }
 
-export function invitationEmail(inviter: string, home: string, url: string): EmailTemplate {
-  return {
-    subject: `${inviter} invited you to ${home} on Homi`,
-    text: `${inviter} invited you to help look after ${home}. Accept: ${url}`,
-    html: layout("Household invitation", `Join ${home}`, `<p>${escapeHtml(inviter)} invited you to share maintenance, documents, and home records.</p>`, { label: "Accept invitation", url }),
-  };
+export function invitationEmail(
+    inviter: string,
+    home: string,
+    url: string,
+): EmailTemplate {
+    return {
+        subject: `${inviter} invited you to ${home} on Homi`,
+        text: `${inviter} invited you to help look after ${home}. Accept: ${url}`,
+        html: layout(
+            "Household invitation",
+            `Join ${home}`,
+            `<p>${escapeHtml(inviter)} invited you to share maintenance, documents, and home records.</p>`,
+            { label: "Accept invitation", url },
+        ),
+    };
 }
 
-export function reminderEmail(title: string, detail: string, url: string): EmailTemplate {
-  return {
-    subject: title,
-    text: `${title}\n${detail}\n${url}`,
-    html: layout("A gentle reminder", title, `<p>${escapeHtml(detail)}</p>`, { label: "Open Homi", url }),
-  };
+export function reminderEmail(
+    title: string,
+    detail: string,
+    url: string,
+): EmailTemplate {
+    return {
+        subject: title,
+        text: `${title}\n${detail}\n${url}`,
+        html: layout(
+            "A gentle reminder",
+            title,
+            `<p>${escapeHtml(detail)}</p>`,
+            {
+                label: "Open Homi",
+                url,
+            },
+        ),
+    };
 }
-

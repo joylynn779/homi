@@ -7,72 +7,76 @@ import { auth } from "../auth";
 import { AppError } from "../errors";
 import { roles, type HomeRole } from "../../features/members/permissions";
 export {
-  hasPermission,
-  permissionMatrix,
-  roles,
+    hasPermission,
+    permissionMatrix,
+    roles,
 } from "../../features/members/permissions";
 export {
-  requireAssetInHome,
-  requireDocumentInHome,
-  requireMemberInHome,
-  requireRoomInHome,
+    requireAssetInHome,
+    requireDocumentInHome,
+    requireMemberInHome,
+    requireRoomInHome,
 } from "./resources";
 
 export async function getOptionalSession() {
-  return auth.api.getSession({ headers: await headers() });
+    return auth.api.getSession({ headers: await headers() });
 }
 
 export async function requireUser() {
-  const current = await getOptionalSession();
-  if (!current)
-    throw new AppError("UNAUTHENTICATED", "Please sign in to continue.", 401);
-  return current;
+    const current = await getOptionalSession();
+    if (!current)
+        throw new AppError(
+            "UNAUTHENTICATED",
+            "Please sign in to continue.",
+            401,
+        );
+    return current;
 }
 
 export async function requireVerifiedUser() {
-  const current = await requireUser();
-  if (!current.user.emailVerified)
-    throw new AppError(
-      "EMAIL_NOT_VERIFIED",
-      "Please verify your email first.",
-      403,
-    );
-  return current;
+    const current = await requireUser();
+    if (!current.user.emailVerified)
+        throw new AppError(
+            "EMAIL_NOT_VERIFIED",
+            "Please verify your email first.",
+            403,
+        );
+    return current;
 }
 
 export async function requireHomeAccess(homeId: string) {
-  const current = await requireVerifiedUser();
-  const [member] = await db
-    .select()
-    .from(homeMembers)
-    .where(
-      and(
-        eq(homeMembers.homeId, homeId),
-        eq(homeMembers.userId, current.user.id),
-      ),
-    )
-    .limit(1);
-  if (!member) throw new AppError("NOT_FOUND", "Home not found.", 404);
-  return { session: current, member };
+    const current = await requireVerifiedUser();
+    const [member] = await db
+        .select()
+        .from(homeMembers)
+        .where(
+            and(
+                eq(homeMembers.homeId, homeId),
+                eq(homeMembers.userId, current.user.id),
+            ),
+        )
+        .limit(1);
+    if (!member) throw new AppError("NOT_FOUND", "Home not found.", 404);
+    return { session: current, member };
 }
 
 export async function requireHomeRole(
-  homeId: string,
-  allowed: readonly HomeRole[],
+    homeId: string,
+    allowed: readonly HomeRole[],
 ) {
-  const access = await requireHomeAccess(homeId);
-  if (!allowed.includes(access.member.role))
-    throw new AppError(
-      "FORBIDDEN",
-      "You do not have permission to do that.",
-      403,
-    );
-  return access;
+    const access = await requireHomeAccess(homeId);
+    if (!allowed.includes(access.member.role))
+        throw new AppError(
+            "FORBIDDEN",
+            "You do not have permission to do that.",
+            403,
+        );
+    return access;
 }
 
 export const canManageAsset = (homeId: string) =>
-  requireHomeRole(homeId, ["OWNER", "ADMIN"]);
+    requireHomeRole(homeId, ["OWNER", "ADMIN"]);
 export const canManageMembers = (homeId: string) =>
-  requireHomeRole(homeId, ["OWNER", "ADMIN"]);
+    requireHomeRole(homeId, ["OWNER", "ADMIN"]);
 export const canViewPrivateDocument = (homeId: string) =>
-  requireHomeRole(homeId, roles);
+    requireHomeRole(homeId, roles);

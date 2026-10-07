@@ -3,5 +3,5 @@ import { MaintenanceHistoryWorkspace } from "@/src/components/maintenance-histor
 export const metadata = { title: "Maintenance history" };
 
 export default function Page() {
-  return <MaintenanceHistoryWorkspace />;
+    return <MaintenanceHistoryWorkspace />;
 }

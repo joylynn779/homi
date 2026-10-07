@@ -3,5 +3,5 @@ import { MaintenanceTemplateWorkspace } from "@/src/components/maintenance-templ
 export const metadata = { title: "Maintenance library" };
 
 export default function Page() {
-  return <MaintenanceTemplateWorkspace />;
+    return <MaintenanceTemplateWorkspace />;
 }

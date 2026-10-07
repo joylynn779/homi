@@ -21,15 +21,15 @@ once. Homi stores only its SHA-256 hash.
 
 Scopes:
 
-| Scope | Purpose |
-| --- | --- |
-| `home:read` | Read Home Health and household summary metrics |
-| `assets:read` | Read authorized equipment records |
-| `maintenance:write` | Create and complete maintenance tasks |
-| `repairs:write` | Declare repairs |
-| `calendar:read` | Reserved for calendar clients |
-| `widgets:read` | Read mobile widget payloads |
-| `webhooks:manage` | Reserved for external webhook administration |
+| Scope               | Purpose                                        |
+| ------------------- | ---------------------------------------------- |
+| `home:read`         | Read Home Health and household summary metrics |
+| `assets:read`       | Read authorized equipment records              |
+| `maintenance:write` | Create and complete maintenance tasks          |
+| `repairs:write`     | Declare repairs                                |
+| `calendar:read`     | Reserved for calendar clients                  |
+| `widgets:read`      | Read mobile widget payloads                    |
+| `webhooks:manage`   | Reserved for external webhook administration   |
 
 Use a bearer header:
 

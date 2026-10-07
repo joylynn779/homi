@@ -3,16 +3,16 @@ import { redirect } from "next/navigation";
 import { AuthForm } from "@/src/components/auth-form";
 import { getOptionalSession } from "@/src/server/authorization";
 export const metadata: Metadata = {
-  title: "Sign in",
-  robots: { index: false, follow: false },
+    title: "Sign in",
+    robots: { index: false, follow: false },
 };
 export default async function Page({
-  searchParams,
+    searchParams,
 }: {
-  searchParams: Promise<{ returnTo?: string }>;
+    searchParams: Promise<{ returnTo?: string }>;
 }) {
-  const session = await getOptionalSession();
-  if (session?.user.emailVerified) redirect("/dashboard");
-  if (session) redirect("/verify-email");
-  return <AuthForm mode="sign-in" returnTo={(await searchParams).returnTo} />;
+    const session = await getOptionalSession();
+    if (session?.user.emailVerified) redirect("/dashboard");
+    if (session) redirect("/verify-email");
+    return <AuthForm mode="sign-in" returnTo={(await searchParams).returnTo} />;
 }

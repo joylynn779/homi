@@ -19,4 +19,3 @@ Homi stores relational, authorization-sensitive home records and private binary 
 ## Consequences
 
 The app can be self-hosted and horizontally scaled with shared PostgreSQL, S3, and Redis. Local development remains complete through Compose. Deployments require stateful external services and cannot be treated as a purely static site.
-

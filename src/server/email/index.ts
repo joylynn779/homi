@@ -7,28 +7,31 @@ import type { EmailTemplate } from "./templates";
 const env = getEnv();
 const isTestTransport = env.NODE_ENV === "test";
 const transporter = isTestTransport
-  ? nodemailer.createTransport({ jsonTransport: true })
-  : nodemailer.createTransport({
-      host: env.SMTP_HOST,
-      port: env.SMTP_PORT,
-      secure: env.SMTP_PORT === 465,
-      auth: env.SMTP_USER
-        ? { user: env.SMTP_USER, pass: env.SMTP_PASSWORD }
-        : undefined,
-    });
+    ? nodemailer.createTransport({ jsonTransport: true })
+    : nodemailer.createTransport({
+          host: env.SMTP_HOST,
+          port: env.SMTP_PORT,
+          secure: env.SMTP_PORT === 465,
+          auth: env.SMTP_USER
+              ? { user: env.SMTP_USER, pass: env.SMTP_PASSWORD }
+              : undefined,
+      });
 
 export async function sendEmail(to: string, template: EmailTemplate) {
-  const result = await transporter.sendMail({
-    from: env.SMTP_FROM,
-    to,
-    subject: template.subject,
-    text: template.text,
-    html: template.html,
-  });
-  logger.info({ messageId: result.messageId, recipientDomain: to.split("@")[1] }, "email_sent");
+    const result = await transporter.sendMail({
+        from: env.SMTP_FROM,
+        to,
+        subject: template.subject,
+        text: template.text,
+        html: template.html,
+    });
+    logger.info(
+        { messageId: result.messageId, recipientDomain: to.split("@")[1] },
+        "email_sent",
+    );
 }
 
 export async function checkSmtp() {
-  if (isTestTransport) return true;
-  return transporter.verify();
+    if (isTestTransport) return true;
+    return transporter.verify();
 }
