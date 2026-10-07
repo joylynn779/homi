@@ -13,7 +13,8 @@ services:
       - /srv/docker-data/homi/postgres:/var/lib/postgresql/data
 
     ports:
-      - "127.0.0.1:5432:5432"
+        # - "127.0.0.1:5432:5432"
+        - "100.74.90.61:5432:5432"
 
     networks:
       - homi_internal
