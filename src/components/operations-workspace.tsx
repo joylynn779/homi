@@ -557,6 +557,7 @@ export function OperationsWorkspace() {
                                             <button
                                                 className="icon-action"
                                                 aria-label={`Delete ${item.title}`}
+                                                title={`Delete ${item.title}`}
                                                 type="button"
                                                 onClick={() =>
                                                     void post(
@@ -700,6 +701,7 @@ export function OperationsWorkspace() {
                                                 className="icon-action"
                                                 type="button"
                                                 aria-label={`Delete ${item.title}`}
+                                                title={`Delete ${item.title}`}
                                                 onClick={() =>
                                                     void post(
                                                         "checklist.delete",

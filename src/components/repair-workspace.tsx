@@ -207,6 +207,7 @@ export function RepairWorkspace() {
                                             className="icon-action"
                                             type="button"
                                             aria-label="Cancel repair editing"
+                                            title="Cancel repair editing"
                                             onClick={() =>
                                                 setEditingRepairId("")
                                             }
@@ -271,6 +272,7 @@ export function RepairWorkspace() {
                                         className="icon-action"
                                         type="button"
                                         aria-label={`Edit ${repair.title}`}
+                                        title={`Edit ${repair.title}`}
                                         onClick={() =>
                                             setEditingRepairId(repair.id)
                                         }

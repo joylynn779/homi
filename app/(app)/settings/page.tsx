@@ -1,6 +1,6 @@
-import { PreferenceWorkspace } from "@/src/components/preference-workspace";
+import { redirect } from "next/navigation";
 
 export const metadata = { title: "Settings" };
 export default function Page() {
-    return <PreferenceWorkspace />;
+    redirect("/settings/profile");
 }

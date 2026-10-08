@@ -161,6 +161,7 @@ export function AppShell({
                         className="icon-button"
                         href="/notifications"
                         aria-label={dictionary.notifications}
+                        title={dictionary.notifications}
                     >
                         <Bell size={19} />
                     </Link>

@@ -47,14 +47,18 @@ export const auth = betterAuth({
             logger.info({ userId: accountUser.id }, "password_reset_completed");
         },
     },
-    socialProviders: {
-        google: {
-            clientId: env.GOOGLE_CLIENT_ID as string,
-            clientSecret: env.GOOGLE_CLIENT_SECRET as string,
-            accessType: "offline",
-            prompt: "select_account consent",
-        },
-    },
+    account: { accountLinking: { enabled: true, allowUnlinkingAll: false } },
+    socialProviders:
+        env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
+            ? {
+                  google: {
+                      clientId: env.GOOGLE_CLIENT_ID as string,
+                      clientSecret: env.GOOGLE_CLIENT_SECRET as string,
+                      accessType: "offline",
+                      prompt: "select_account consent",
+                  },
+              }
+            : {},
     rateLimit: {
         enabled: true,
         window: 60,

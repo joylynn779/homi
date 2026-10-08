@@ -426,6 +426,7 @@ export function MemberWorkspace() {
                                                 className="icon-action"
                                                 type="button"
                                                 aria-label={`Remove ${member.name}`}
+                                                title={`Remove ${member.name}`}
                                                 disabled={processing}
                                                 onClick={() =>
                                                     void removeMember(member)

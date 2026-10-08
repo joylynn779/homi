@@ -197,6 +197,7 @@ export function CalendarWorkspace() {
                                 className="icon-action"
                                 type="button"
                                 aria-label="Previous month"
+                                title="Previous month"
                                 onClick={() => moveMonth(-1)}
                             >
                                 <ChevronLeft size={18} />
@@ -204,6 +205,7 @@ export function CalendarWorkspace() {
                             <button
                                 className="icon-action"
                                 type="button"
+                                title="Next month"
                                 aria-label="Next month"
                                 onClick={() => moveMonth(1)}
                             >

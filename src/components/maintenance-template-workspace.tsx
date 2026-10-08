@@ -305,6 +305,7 @@ export function MaintenanceTemplateWorkspace() {
                                     className="icon-action"
                                     type="button"
                                     aria-label={`Archive ${template.title}`}
+                                    title={`Archive ${template.title}`}
                                     disabled={processing === template.id}
                                     onClick={() =>
                                         void archiveTemplate(template)
@@ -491,6 +492,7 @@ export function MaintenanceTemplateWorkspace() {
                                 className="icon-action"
                                 type="button"
                                 aria-label="Close template scheduler"
+                                title="Close template scheduler"
                                 onClick={() => setSelected(null)}
                             >
                                 <X size={17} />

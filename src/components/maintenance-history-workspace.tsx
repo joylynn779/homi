@@ -140,6 +140,7 @@ export function MaintenanceHistoryWorkspace() {
                                         className="icon-action"
                                         type="button"
                                         aria-label="Cancel maintenance record editing"
+                                        title="Cancel maintenance record editing"
                                         onClick={() => setEditingId("")}
                                     >
                                         <X size={16} />
@@ -251,6 +252,7 @@ export function MaintenanceHistoryWorkspace() {
                                     className="icon-action"
                                     type="button"
                                     aria-label={`Edit ${record.taskTitle ?? "maintenance record"}`}
+                                    title={`Edit ${record.taskTitle ?? "maintenance record"}`}
                                     onClick={() => setEditingId(record.id)}
                                 >
                                     <Pencil size={15} />

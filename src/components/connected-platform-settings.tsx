@@ -294,6 +294,7 @@ export function ConnectedPlatformSettings() {
                     <button
                         className="icon-action"
                         aria-label="Hide secret"
+                        title="Hide secret"
                         onClick={() => setRevealedSecret(null)}
                     >
                         <Check size={16} />
@@ -435,6 +436,7 @@ export function ConnectedPlatformSettings() {
                                 className="icon-action"
                                 type="button"
                                 aria-label={`Hide ${widget}`}
+                                title={`Hide ${widget}`}
                                 onClick={() =>
                                     setExperience({
                                         ...experience,
@@ -549,6 +551,7 @@ export function ConnectedPlatformSettings() {
                                 className="icon-action"
                                 type="button"
                                 aria-label={`Revoke ${key.name}`}
+                                title={`Revoke ${key.name}`}
                                 onClick={async () => {
                                     await fetch(`/api/api-keys/${key.id}`, {
                                         method: "DELETE",
@@ -665,6 +668,7 @@ export function ConnectedPlatformSettings() {
                                 className="icon-action"
                                 type="button"
                                 aria-label={`Delete ${hook.name}`}
+                                title={`Delete ${hook.name}`}
                                 onClick={async () => {
                                     await fetch(`/api/webhooks/${hook.id}`, {
                                         method: "DELETE",

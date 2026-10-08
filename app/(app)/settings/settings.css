@@ -1,0 +1,143 @@
+.settings-workspace .dashboard-head h1 {
+    font-size: 36px;
+    line-height: 1.15;
+    margin: 8px 0 10px;
+}
+.settings-workspace .dashboard-head p {
+    margin: 0;
+}
+.settings-content .dash-card-head {
+    margin-bottom: 0;
+}
+.settings-content .dash-card-head > svg {
+    display: none;
+}
+.settings-content .profile-card-head {
+    margin: 0;
+}
+.settings-content .auth-form > p {
+    margin: 0;
+}
+.settings-content .settings-section > .muted-copy {
+    margin: 0 0 14px;
+}
+.settings-navigation {
+    display: flex;
+    gap: 24px;
+    margin: 20px 0 0;
+    border-bottom: 1px solid var(--line);
+    overflow-x: auto;
+}
+.settings-navigation a {
+    flex-shrink: 0;
+    padding: 12px 2px;
+    color: var(--ink-soft);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    font-size: 14px;
+    font-weight: 600;
+}
+.settings-navigation a[aria-current="page"] {
+    color: var(--brand);
+    border-bottom-color: var(--brand);
+}
+.settings-navigation a:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: -2px;
+}
+.settings-content {
+    max-width: 960px;
+}
+.settings-section,
+.settings-content > .dash-card {
+    margin: 0;
+    padding: 24px 0;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+.settings-content h2 {
+    margin: 0 0 12px;
+    font-size: 16px;
+    font-weight: 620;
+}
+.settings-content .auth-form {
+    gap: 14px;
+}
+.settings-content .auth-form > .field {
+    max-width: 560px;
+}
+.settings-content .auth-form > .button {
+    justify-self: start;
+}
+.settings-content .check-row {
+    justify-content: start;
+}
+.settings-content .settings-section + .settings-section {
+    margin-top: 0;
+}
+.settings-fields {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+.sign-in-method {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 0;
+    border-top: 1px solid var(--line-soft);
+}
+.sign-in-method > div {
+    flex: 1;
+    min-width: 0;
+}
+.sign-in-method strong,
+.sign-in-method small {
+    display: block;
+}
+.sign-in-method small {
+    margin-top: 5px;
+    color: var(--ink-soft);
+    overflow-wrap: anywhere;
+}
+.sign-in-method .button {
+    flex-shrink: 0;
+}
+.sign-in-method-status {
+    font-size: 12px;
+    color: var(--ink-soft);
+}
+.settings-sessions {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 16px 0;
+    border-top: 1px solid var(--line-soft);
+}
+.settings-sessions strong,
+.settings-sessions small {
+    display: block;
+    overflow-wrap: anywhere;
+}
+.settings-sessions small {
+    margin-top: 5px;
+    color: var(--ink-soft);
+}
+@media (max-width: 600px) {
+    .settings-navigation {
+        gap: 18px;
+    }
+    .settings-fields {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .sign-in-method {
+        flex-wrap: wrap;
+    }
+    .sign-in-method > div {
+        flex-basis: calc(100% - 40px);
+    }
+}

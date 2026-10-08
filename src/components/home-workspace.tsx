@@ -478,6 +478,7 @@ export function HomeWorkspace() {
                         <form
                             id="add-home-form"
                             aria-label="Add home"
+                            title="Add home"
                             className="auth-form compact-form"
                             onSubmit={addHome}
                         >
@@ -646,6 +647,7 @@ export function HomeWorkspace() {
                                                 className="icon-action"
                                                 type="button"
                                                 aria-label={`Edit ${room.name}`}
+                                                title={`Edit ${room.name}`}
                                                 onClick={() =>
                                                     setEditingRoomId(room.id)
                                                 }
@@ -656,6 +658,7 @@ export function HomeWorkspace() {
                                                 className="icon-action"
                                                 type="button"
                                                 aria-label={`Archive ${room.name}`}
+                                                title={`Archive ${room.name}`}
                                                 onClick={() =>
                                                     void archiveRoom(room)
                                                 }

@@ -193,6 +193,7 @@ export function NotificationWorkspace() {
                             <button
                                 className="icon-action"
                                 aria-label={`Mark ${notice.title} as read`}
+                                title={`Mark ${notice.title} as read`}
                                 onClick={() =>
                                     void mutate({
                                         action: "READ",
@@ -207,6 +208,7 @@ export function NotificationWorkspace() {
                             <button
                                 className="icon-action"
                                 aria-label={`Unsnooze ${notice.title}`}
+                                title={`Unsnooze ${notice.title}`}
                                 onClick={() =>
                                     void mutate({
                                         action: "UNSNOOZE",
@@ -220,6 +222,7 @@ export function NotificationWorkspace() {
                             <button
                                 className="icon-action"
                                 aria-label={`Snooze ${notice.title} until tomorrow`}
+                                title={`Snooze ${notice.title} until tomorrow`}
                                 onClick={() => void snoozeTomorrow(notice.id)}
                             >
                                 <Clock3 size={16} />
@@ -228,6 +231,7 @@ export function NotificationWorkspace() {
                         <button
                             className="icon-action"
                             aria-label={`Dismiss ${notice.title}`}
+                            title={`Dismiss ${notice.title}`}
                             onClick={() =>
                                 void mutate({
                                     action: "DISMISS",

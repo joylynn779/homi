@@ -80,6 +80,7 @@ export function PwaInstallPrompt({ compact = false }: { compact?: boolean }) {
                     className="icon-button"
                     type="button"
                     aria-label="Install Homi"
+                    title="Install Homi"
                     onClick={() => void install()}
                 >
                     <Download size={18} />
@@ -88,6 +89,7 @@ export function PwaInstallPrompt({ compact = false }: { compact?: boolean }) {
                 <button
                     className="button"
                     type="button"
+                    title="Install Homi"
                     onClick={() => void install()}
                 >
                     <Download size={16} />
@@ -113,6 +115,7 @@ export function PwaInstallPrompt({ compact = false }: { compact?: boolean }) {
                         <button
                             className="icon-action install-close"
                             aria-label="Close installation guide"
+                            title="Close installation guide"
                             type="button"
                             onClick={() => setOpen(false)}
                         >

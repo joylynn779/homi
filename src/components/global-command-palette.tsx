@@ -262,6 +262,7 @@ export function GlobalCommandPalette({
                 className="global-search-trigger"
                 type="button"
                 onClick={() => setOpen(true)}
+                title="Search Homi"
                 aria-label="Search Homi"
             >
                 <Search size={16} />
@@ -332,6 +333,7 @@ export function GlobalCommandPalette({
                                     className="icon-action"
                                     type="button"
                                     aria-label="Save this search"
+                                    title="Save this search"
                                     onClick={() => void saveCurrentSearch()}
                                 >
                                     <Bookmark size={17} />
@@ -341,6 +343,7 @@ export function GlobalCommandPalette({
                                 className="icon-action"
                                 type="button"
                                 aria-label="Close search"
+                                title="Close search"
                                 onClick={close}
                             >
                                 <X size={17} />
@@ -362,6 +365,7 @@ export function GlobalCommandPalette({
                                         <button
                                             type="button"
                                             aria-label={`Delete ${search.name}`}
+                                            title={`Delete ${search.name}`}
                                             onClick={() =>
                                                 void removeSaved(search.id)
                                             }

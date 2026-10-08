@@ -1,185 +1,103 @@
 "use client";
-
 import { useEffect, useState, type FormEvent } from "react";
-import {
-    KeyRound,
-    LogOut,
-    Monitor,
-    RefreshCcw,
-    ShieldCheck,
-} from "lucide-react";
+import { Download, KeyRound, LogOut, Monitor, RefreshCcw } from "lucide-react";
 import { authClient } from "@/src/lib/auth-client";
+import { ActionFeedback } from "./action-feedback";
+import { SignInMethods } from "./sign-in-methods";
 
 type ActiveSession = {
     id: string;
     token: string;
     userAgent?: string | null;
     ipAddress?: string | null;
-    createdAt: Date | string;
     expiresAt: Date | string;
 };
-
 export function SecurityWorkspace() {
-    const [sessions, setSessions] = useState<ActiveSession[]>([]);
+    const [sessions, setSessions] = useState<ActiveSession[] | null>(null);
+    const [hasPassword, setHasPassword] = useState(false);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
-
+    const [busy, setBusy] = useState(false);
     async function loadSessions() {
         const result = await authClient.listSessions();
+        if (result.error) {
+            setError(
+                "Could not load sessions. Sign in again if your session has expired.",
+            );
+            return;
+        }
         setSessions((result.data ?? []) as ActiveSession[]);
     }
     useEffect(() => {
-        void authClient.listSessions().then((result) => {
-            setSessions((result.data ?? []) as ActiveSession[]);
-        });
+        void authClient
+            .listSessions()
+            .then((result) => {
+                if (result.error)
+                    setError(
+                        "Could not load sessions. Sign in again if your session has expired.",
+                    );
+                else setSessions((result.data ?? []) as ActiveSession[]);
+            })
+            .catch(() =>
+                setError("Could not load sessions. Please try again."),
+            );
     }, []);
-
     async function changePassword(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
+        const element = event.currentTarget;
+        const form = new FormData(element);
+        setBusy(true);
         setError("");
         setMessage("");
-        const form = new FormData(event.currentTarget);
-        const result = await authClient.changePassword({
-            currentPassword: String(form.get("currentPassword") ?? ""),
-            newPassword: String(form.get("newPassword") ?? ""),
-            revokeOtherSessions: true,
-        });
-        if (result.error)
-            return setError(
-                "Could not change the password. Check the current password.",
-            );
-        event.currentTarget.reset();
-        setMessage("Password changed. Other sessions were revoked.");
-        await loadSessions();
+        try {
+            const result = await authClient.changePassword({
+                currentPassword: String(form.get("currentPassword") ?? ""),
+                newPassword: String(form.get("newPassword") ?? ""),
+                revokeOtherSessions: true,
+            });
+            if (result.error) {
+                setError(
+                    "Could not change the password. Check the current password and try again.",
+                );
+                return;
+            }
+            element.reset();
+            setMessage("Password changed. Other sessions were revoked.");
+            await loadSessions();
+        } catch {
+            setError("Could not change the password. Please try again.");
+        } finally {
+            setBusy(false);
+        }
     }
-
-    async function updateName(event: FormEvent<HTMLFormElement>) {
-        event.preventDefault();
-        const name = String(
-            new FormData(event.currentTarget).get("name") ?? "",
-        ).trim();
-        const result = await authClient.updateUser({ name });
-        setMessage(
-            result.error ? "Could not update your name." : "Profile updated.",
-        );
+    async function revoke(token?: string) {
+        setBusy(true);
+        setError("");
+        setMessage("");
+        try {
+            const result = token
+                ? await authClient.revokeSession({ token })
+                : await authClient.revokeOtherSessions();
+            if (result.error) {
+                setError("Could not revoke sessions. Please try again.");
+                return;
+            }
+            setMessage(token ? "Session revoked." : "Other sessions revoked.");
+            await loadSessions();
+        } catch {
+            setError("Could not revoke sessions. Please try again.");
+        } finally {
+            setBusy(false);
+        }
     }
-
-    async function revoke(token: string) {
-        await authClient.revokeSession({ token });
-        await loadSessions();
-    }
-
     return (
-        <main id="main" className="app-main">
-            <div className="dashboard-head">
-                <div>
-                    <small>Account controls</small>
-                    <h1>Security & sessions</h1>
-                    <p>
-                        Keep your profile, password, and signed-in devices under
-                        your control.
-                    </p>
-                </div>
-                <button
-                    className="button button-secondary"
-                    onClick={() =>
-                        void authClient.signOut({
-                            fetchOptions: {
-                                onSuccess: () => window.location.assign("/"),
-                            },
-                        })
-                    }
-                >
-                    <LogOut size={16} />
-                    Sign out
-                </button>
-            </div>
-            {error && (
-                <p className="form-error" role="alert">
-                    {error}
-                </p>
-            )}
-            {message && (
-                <p className="form-success" role="status">
-                    {message}
-                </p>
-            )}
-            <div className="dash-grid" style={{ marginTop: 32 }}>
-                <section className="dash-card">
-                    <div className="dash-card-head">
-                        <h2>Active sessions</h2>
-                        <Monitor size={17} />
-                    </div>
-                    {sessions.map((session) => (
-                        <div className="dash-task" key={session.id}>
-                            <span>
-                                <Monitor size={16} />
-                            </span>
-                            <div>
-                                <strong>
-                                    {session.userAgent?.slice(0, 70) ||
-                                        "Unknown device"}
-                                </strong>
-                                <small>
-                                    {session.ipAddress || "IP unavailable"} ·
-                                    expires{" "}
-                                    {new Intl.DateTimeFormat("en", {
-                                        dateStyle: "medium",
-                                    }).format(new Date(session.expiresAt))}
-                                </small>
-                            </div>
-                            <button
-                                className="icon-action"
-                                aria-label="Revoke session"
-                                onClick={() => void revoke(session.token)}
-                            >
-                                <LogOut size={16} />
-                            </button>
-                        </div>
-                    ))}
-                    <button
-                        className="button button-secondary"
-                        onClick={async () => {
-                            await authClient.revokeOtherSessions();
-                            await loadSessions();
-                            setMessage("Other sessions revoked.");
-                        }}
-                    >
-                        <RefreshCcw size={16} />
-                        Revoke all other sessions
-                    </button>
-                </section>
-                <div>
-                    <form className="dash-card auth-form" onSubmit={updateName}>
-                        <div className="dash-card-head">
-                            <h2>Profile</h2>
-                            <ShieldCheck size={17} />
-                        </div>
-                        <div className="field">
-                            <label htmlFor="security-name">Display name</label>
-                            <input
-                                id="security-name"
-                                name="name"
-                                minLength={2}
-                                required
-                            />
-                        </div>
-                        <button
-                            className="button button-secondary"
-                            type="submit"
-                        >
-                            Change name
-                        </button>
-                    </form>
-                    <form
-                        className="dash-card auth-form"
-                        style={{ marginTop: 16 }}
-                        onSubmit={changePassword}
-                    >
-                        <div className="dash-card-head">
-                            <h2>Change password</h2>
-                            <KeyRound size={17} />
-                        </div>
+        <>
+            <SignInMethods onCredentialChange={setHasPassword} />
+            <ActionFeedback error={error} message={message} />
+            {hasPassword && (
+                <section className="settings-section">
+                    <h2>Change password</h2>
+                    <form className="auth-form" onSubmit={changePassword}>
                         <div className="field">
                             <label htmlFor="current-password">
                                 Current password
@@ -204,13 +122,89 @@ export function SecurityWorkspace() {
                                 required
                             />
                         </div>
-                        <button className="button" type="submit">
+                        <button
+                            className="button button-small"
+                            type="submit"
+                            disabled={busy}
+                        >
                             <KeyRound size={16} />
-                            Update password
+                            {busy ? "Saving…" : "Update password"}
                         </button>
                     </form>
+                </section>
+            )}
+            <section className="settings-section">
+                <h2>Sessions</h2>
+                <p className="muted-copy">
+                    Review your signed-in devices and revoke access when needed.
+                </p>
+                {!sessions && !error && <p role="status">Loading sessions…</p>}
+                {sessions?.map((session) => (
+                    <div className="settings-sessions" key={session.id}>
+                        <Monitor size={20} aria-hidden="true" />
+                        <div>
+                            <strong>
+                                {session.userAgent?.slice(0, 70) ||
+                                    "Unknown device"}
+                            </strong>
+                            <small>
+                                {session.ipAddress || "IP unavailable"} ·
+                                expires{" "}
+                                {new Intl.DateTimeFormat("en", {
+                                    dateStyle: "medium",
+                                }).format(new Date(session.expiresAt))}
+                            </small>
+                        </div>
+                        <button
+                            className="icon-action"
+                            aria-label="Revoke session"
+                            title="Revoke session"
+                            disabled={busy}
+                            onClick={() => void revoke(session.token)}
+                        >
+                            <LogOut size={16} />
+                        </button>
+                    </div>
+                ))}
+                <button
+                    className="button button-secondary button-small"
+                    disabled={busy}
+                    onClick={() => void revoke()}
+                >
+                    <RefreshCcw size={16} />
+                    Revoke all other sessions
+                </button>
+            </section>
+            <section className="settings-section">
+                <h2>Account & privacy</h2>
+                <p className="muted-copy">
+                    Homi ships without advertising trackers or third-party
+                    analytics. Export your account data at any time.
+                </p>
+                <div className="inline-actions">
+                    <a
+                        className="button button-secondary button-small"
+                        href="/api/export/account"
+                    >
+                        <Download size={16} />
+                        Export JSON
+                    </a>
+                    <button
+                        className="button button-secondary button-small"
+                        onClick={() =>
+                            void authClient.signOut({
+                                fetchOptions: {
+                                    onSuccess: () =>
+                                        window.location.assign("/"),
+                                },
+                            })
+                        }
+                    >
+                        <LogOut size={16} />
+                        Sign out
+                    </button>
                 </div>
-            </div>
-        </main>
+            </section>
+        </>
     );
 }

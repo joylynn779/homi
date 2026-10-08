@@ -266,6 +266,7 @@ export function MaintenanceWorkspace() {
                                                 className="icon-action"
                                                 type="button"
                                                 aria-label="Cancel task editing"
+                                                title="Cancel task editing"
                                                 onClick={() =>
                                                     setEditingTaskId("")
                                                 }
@@ -494,6 +495,7 @@ export function MaintenanceWorkspace() {
                                         className="icon-action"
                                         type="button"
                                         aria-label={`Edit ${task.title}`}
+                                        title={`Edit ${task.title}`}
                                         onClick={() =>
                                             setEditingTaskId(task.id)
                                         }
@@ -508,6 +510,7 @@ export function MaintenanceWorkspace() {
                                                     : ""
                                             }`}
                                             aria-label={`Complete ${task.title}`}
+                                            title={`Complete ${task.title}`}
                                             disabled={Boolean(completingId)}
                                             onClick={() => void complete(task)}
                                         >
